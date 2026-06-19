@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GBC Revision Questions</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 50px auto; padding: 20px; }
+    #paySection, #quizSection { border: 2px solid #4CAF50; padding: 30px; border-radius: 10px; }
+    #quizSection { display: none; }
+    input, button { padding: 12px; margin: 10px 0; width: 100%; font-size: 16px; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+    .question { margin: 20px 0; padding: 15px; background: #f5f5f5; }
+  </style>
+</head>
+<body>
+
+<!-- STEP 1: PAYMENT SCREEN -->
+<div id="paySection">
+  <h2>🔒 Unlock Revision Questions</h2>
+  <p>Pay Ksh 19 via M-Pesa to access all questions</p>
+  <input type="tel" id="phone" placeholder="2547XXXXXXXX" />
+  <button onclick="payAndUnlock()">Pay Ksh 19 Now</button>
+  <p id="status" style="color: orange;"></p>
+</div>
+
+<!-- STEP 2: QUIZ SCREEN - Hidden until paid -->
+<div id="quizSection">
+  <h2>✅ Questions Unlocked</h2>
+  
+  <div class="question">
+    <p><b>1. What is 2 + 2?</b></p>
+    <input type="radio" name="q1" value="3"> 3<br>
+    <input type="radio" name="q1" value="4"> 4<br>
+    <input type="radio" name="q1" value="5"> 5<br>
+  </div>
+
+  <div class="question">
+    <p><b>2. Capital of Kenya?</b></p>
+    <input type="radio" name="q2" value="Nairobi"> Nairobi<br>
+    <input type="radio" name="q2" value="Mombasa"> Mombasa<br>
+  </div>
+
+  <button onclick="alert('Submitted!')">Submit Answers</button>
+</div>
+
+<script>
+const BACKEND_URL = 'https://your-render-app.onrender.com'; // CHANGE THIS
+
+async function payAndUnlock() {
+  const phone = document.getElementById('phone').value;
+  const status = document.getElementById('status');
+  
+  if(!phone.startsWith('2547') || phone.length !== 12) {
+    status.innerText = 'Enter phone like 254712345678';
+    return;
+  }
+  
+  status.innerText = 'Sending M-Pesa popup to ' + phone + '...';
+  
+  // 1. Call backend to send STK Push
+  const res = await fetch(BACKEND_URL + '/pay', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({phone: phone})
+  });
+  
+  const data = await res.json();
+  
+  if(!data.success) {
+    status.innerText = 'Error: ' + data.error;
+    return;
+  }
+  
+  status.innerText = 'Check your phone → Enter M-Pesa PIN 1234';
+  
+  // 2. Check every 3 seconds if user paid
+  const checkInterval = setInterval(async () => {
+    const check = await fetch(`${BACKEND_URL}/check-status/${phone}`);
+    const statusData = await check.json();
+    
+    if(statusData.paid) {
+      clearInterval(checkInterval);
+      localStorage.setItem('paid_' + phone, 'true'); // Remember payment
+      document.getElementById('paySection').style.display = 'none';
+      document.getElementById('quizSection').style.display = 'block';
+      status.innerText = '';
+    }
+  }, 3000);
+}
+
+// 3. If user refreshes page, check if already paid
+window.onload = function() {
+  const phone = localStorage.getItem('last_phone');
+  if(phone && localStorage.getItem('paid_' + phone) === 'true') {
+    document.getElementById('paySection').style.display = 'none';
+    document.getElementById('quizSection').style.display = 'block';
+  }
+}
+</script>
+
+</body>
+  </html>
