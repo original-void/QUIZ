@@ -19,7 +19,7 @@
 <div id="paySection">
   <h2>🔒 Unlock GBC Revision Questions</h2>
   <p>Pay Ksh 1 via M-Pesa Sandbox to test access</p>
-  <input type="tel" id="phone" placeholder="254708374149" value="254708374149" />
+  <input type="tel" id="phone" placeholder="254112843071" value="254112843071" />
   <button id="payBtn" onclick="payAndUnlock()">Pay Ksh 1 Now</button>
   <p id="status"></p>
   <small>Sandbox test number: 254708374149 | PIN: 1234</small>
@@ -53,7 +53,7 @@ async function payAndUnlock() {
   const btn = document.getElementById('payBtn');
   
   if(!phone.startsWith('2547') || phone.length !== 12) {
-    status.innerText = 'Enter phone like 254708374149';
+    status.innerText = 'Enter phone like 254112843071';
     return;
   }
   
